@@ -1,0 +1,7 @@
+qid,category_id,question,gold_answer
+1,Disaster Recovery Decision,"Do you restore from backups on the same infrastructure or activate the DR site?", "Potential Answer: Restore on same infrastructure for speed."
+2,Disaster Recovery Decision,"How can you rebuild on the same environment when forensic investigation might take weeks?","Mentions DR site activation with evidence preservation"
+3,Immutable Backups,"Do we have immutable backups, and how do you verify their integrity?","Yes, stored in cloud"
+4,Immutable Backups,"How do you confirm immutability under pressure? What if credentials are compromised?","Multi-factor verification and offline copy"
+5,Domain Controller Restoration,"How do you restore a compromised domain controller safely?","Rebuild from clean backup"
+6,Domain Controller Restoration,"How do you ensure restored DC doesn’t reintroduce malware?","Includes password resets and malware scan"
