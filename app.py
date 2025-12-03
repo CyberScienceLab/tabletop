@@ -89,30 +89,31 @@ def log_result(pid, cat, qid, question, gold, user_ans, score, analysis):
 # ==========================
 def grade_answer(question, gold_answer, user_answer):
     prompt = f"""
-    You are a strict cybersecurity evaluator. 
-    Assess how well the USER ANSWER matches the IDEAL ANSWER in correctness, completeness, and relevance.
+    You are evaluating how well the USER ANSWER matches the meaning of the IDEAL ANSWER. 
+    Do NOT penalize the user for short answers if the meaning is correct. 
+    The gold answer may be short — treat it as the core meaning, not the expected length.
 
     QUESTION:
     {question}
 
-    IDEAL ANSWER (Ground Truth):
+    IDEAL ANSWER (Short Ground Truth):
     {gold_answer}
 
     USER ANSWER:
     {user_answer}
 
     Evaluation rules:
-    1. Score from 0 to 5 (integers or halves: 0, 0.5, 1, ..., 5).
-    2. Score 5 only if the answer is fully correct AND covers the key concepts.
-    3. Score 3–4 for partially correct answers missing some key details.
-    4. Score 1–2 for vague, incomplete, or partially wrong answers.
-    5. Score 0 for incorrect, irrelevant, or hallucinated information.
-    6. Be strict: If key ransomware concepts are missing, deduct points.
+    1. Score based on semantic correctness, not answer length.
+    2. A brief but accurate answer should score 4–5.
+    3. If the meaning is mostly correct but missing minor details, score 3–4.
+    4. If partially correct or vague, score 2–3.
+    5. If incorrect, irrelevant, or contradictory to the gold answer, score 0–2.
+    6. Be lenient when the user answer captures the essential meaning.
 
-    Return ONLY this JSON structure:
+    Return ONLY this JSON:
     {{
-    "score": <number>,
-    "analysis": "<brief reasoning>"
+    "score": <number 0-5>,
+    "analysis": "<short explanation>"
     }}
     """
     response = client.chat.completions.create(
