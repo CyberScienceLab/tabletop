@@ -90,24 +90,51 @@ def log_result(pid, cat, qid, question, gold, user_ans, score, analysis):
 # LLM Scoring
 # ==========================
 def grade_answer(question, gold_answer, user_answer):
+#     prompt = f"""
+# Grade this answer.
+
+# QUESTION:
+# {question}
+
+# IDEAL ANSWER:
+# {gold_answer}
+
+# USER ANSWER:
+# {user_answer}
+
+# Return only JSON:
+# {{
+#  "score": number,
+#  "analysis": "text"
+# }}
+# """
     prompt = f"""
-Grade this answer.
+    You are a strict cybersecurity evaluator. 
+    Assess how well the USER ANSWER matches the IDEAL ANSWER in correctness, completeness, and relevance.
 
-QUESTION:
-{question}
+    QUESTION:
+    {question}
 
-IDEAL ANSWER:
-{gold_answer}
+    IDEAL ANSWER (Ground Truth):
+    {gold_answer}
 
-USER ANSWER:
-{user_answer}
+    USER ANSWER:
+    {user_answer}
 
-Return only JSON:
-{{
- "score": number,
- "analysis": "text"
-}}
-"""
+    Evaluation rules:
+    1. Score from 0 to 5 (integers or halves: 0, 0.5, 1, ..., 5).
+    2. Score 5 only if the answer is fully correct AND covers the key concepts.
+    3. Score 3–4 for partially correct answers missing some key details.
+    4. Score 1–2 for vague, incomplete, or partially wrong answers.
+    5. Score 0 for incorrect, irrelevant, or hallucinated information.
+    6. Be strict: If key ransomware concepts are missing, deduct points.
+
+    Return ONLY this JSON structure:
+    {{
+    "score": <number>,
+    "analysis": "<brief reasoning>"
+    }}
+    """
     response = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[{"role": "user", "content": prompt}]
@@ -153,7 +180,7 @@ def chat_fn(message, history, state):
 
     # Require ID
     if not state["participant_id"]:
-        bot_msg = "👋 Please enter your participant ID using `/id 11`."
+        bot_msg = "👋 Please enter your participant ID using `/id `."
         history.append({"role": "assistant", "content": bot_msg})
         return history, state, ""
 
@@ -162,9 +189,8 @@ def chat_fn(message, history, state):
         state["qid"] = get_first_qid()
         q = get_question(state["qid"])
         bot_msg = (
-            # f"🚀 **Test Started**\n\n"
-            f"Category: {q['category_id']}\n" #— Question {q['qid']}
-            f"{q['question']}"
+            f"**Category:** {q['category_id']}\n"
+            f"**Question:** {q['question']}"
         )
         history.append({"role": "assistant", "content": bot_msg})
         return history, state, ""
@@ -192,9 +218,10 @@ def chat_fn(message, history, state):
     next_qid = None
 
     if is_first_in_category(qid) and score < SCORE_THRESHOLD:
-        extra = "\n\n⚠️ Low score — skipping category."
+        extra = "\n\n⚠️ Low score — skipping category.\n\n"
         next_qid = get_next_category_first_qid(qid)
     else:
+        extra = "\n\n **Good answer** \n\n"
         next_qid = get_next_in_category(qid)
         if next_qid is None:
             extra = "\n\n Category complete."
@@ -209,8 +236,10 @@ def chat_fn(message, history, state):
         bot_msg = (
             # feedback + 
             extra +
-            f"\n\nCategory: {q_next['category_id']} \n"  #/ Q{q_next['qid']}
-            f"{q_next['question']}"
+            f"**Category:** {q['category_id']}\n"
+            f"**Question:** {q['question']}"   
+            # f"\n\nCategory: {q_next['category_id']} \n"  #/ Q{q_next['qid']}
+            # f"{q_next['question']}"
         )
 
     history.append({"role": "assistant", "content": bot_msg})
