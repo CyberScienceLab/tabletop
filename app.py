@@ -3,7 +3,6 @@ import csv
 import json
 import datetime
 from typing import Optional, Dict, List
-
 import pandas as pd
 import gradio as gr
 from dotenv import load_dotenv
@@ -14,7 +13,6 @@ from openai import OpenAI
 # ==========================
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
 QUESTIONS_FILE = "questions.csv"
 RESULTS_FILE = "results.csv"
 SCORE_THRESHOLD = 2.9
@@ -90,24 +88,6 @@ def log_result(pid, cat, qid, question, gold, user_ans, score, analysis):
 # LLM Scoring
 # ==========================
 def grade_answer(question, gold_answer, user_answer):
-#     prompt = f"""
-# Grade this answer.
-
-# QUESTION:
-# {question}
-
-# IDEAL ANSWER:
-# {gold_answer}
-
-# USER ANSWER:
-# {user_answer}
-
-# Return only JSON:
-# {{
-#  "score": number,
-#  "analysis": "text"
-# }}
-# """
     prompt = f"""
     You are a strict cybersecurity evaluator. 
     Assess how well the USER ANSWER matches the IDEAL ANSWER in correctness, completeness, and relevance.
@@ -224,7 +204,7 @@ def chat_fn(message, history, state):
         extra = "\n\n **Good answer** \n\n"
         next_qid = get_next_in_category(qid)
         if next_qid is None:
-            extra = "\n\n Category complete."
+            extra = "\n\n Category complete.\n\n"
             next_qid = get_next_category_first_qid(qid)
 
     if next_qid is None:
@@ -236,8 +216,8 @@ def chat_fn(message, history, state):
         bot_msg = (
             # feedback + 
             extra +
-            f"**Category:** {q['category_id']}\n"
-            f"**Question:** {q['question']}"   
+            f"**Category:** {q_next['category_id']}\n"
+            f"**Question:** {q_next['question']}"   
             # f"\n\nCategory: {q_next['category_id']} \n"  #/ Q{q_next['qid']}
             # f"{q_next['question']}"
         )
