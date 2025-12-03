@@ -17,7 +17,7 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 QUESTIONS_FILE = "questions.csv"
 RESULTS_FILE = "results.csv"
-SCORE_THRESHOLD = 3.5
+SCORE_THRESHOLD = 2.9
 
 # ==========================
 # Load questions
