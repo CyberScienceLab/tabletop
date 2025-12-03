@@ -21,3 +21,6 @@ python -m venv .venv
 .\.venv\Scripts\activate.bat
 pip install -r requirements.txt
 python app.py
+
+Before running the application, set your API key in the .env file, for example:
+OPENAI_API_KEY=your_api_key_here
